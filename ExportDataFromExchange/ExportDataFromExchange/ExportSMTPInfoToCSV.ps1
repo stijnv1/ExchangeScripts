@@ -1,6 +1,3 @@
-#
-# ExportSMTPInfoToCSV.ps1
-#
 $mailboxes = Get-Mailbox
 $exportUserArray = @()
 $Member = @{
@@ -32,15 +29,16 @@ foreach ($mailbox in $mailboxes)
     $userObject | Add-Member @Member -Name "Surname" -Value $adUser.Surname
     $userObject | Add-Member @Member -Name "MailboxType" -Value $mailbox.RecipientTypeDetails
     $userObject | Add-Member @Member -Name "Alias" -Value $mailbox.Alias
+    $userObject | Add-Member @Member -Name "PrimaryAddress" -Value $mailbox.PrimarySmtpAddress
 
-    #export the proxy addresses
+    #export the alias e-mail addresses
     $EmailAddressesStringArray = [string[]]$mailbox.emailaddresses
     [int]$i = 0
     foreach ($emailAddress in $EmailAddressesStringArray)
     {
         if (($emailAddress | Select-String -Pattern "SMTP:") -or ($emailAddress | Select-String -Pattern "smtp:"))
         {
-            if (!($emailAddress | Select-String -Pattern "adam.local"))
+            if (!($emailAddress | Select-String -Pattern "adam.local") -and !($emailAddress.Replace("SMTP:","") -eq $mailbox.PrimarySmtpAddress))
             {
                 $emailAddress = $emailAddress.Replace("smtp:","")
                 $emailAddress = $emailAddress.Replace("SMTP:","")
