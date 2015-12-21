@@ -1,3 +1,8 @@
+param
+(
+	[string]$DomainFQDN
+)
+
 $mailboxes = Get-Mailbox
 $exportUserArray = @()
 $Member = @{
@@ -38,7 +43,7 @@ foreach ($mailbox in $mailboxes)
     {
         if (($emailAddress | Select-String -Pattern "SMTP:") -or ($emailAddress | Select-String -Pattern "smtp:"))
         {
-            if (!($emailAddress | Select-String -Pattern "adam.local") -and !($emailAddress.Replace("SMTP:","") -eq $mailbox.PrimarySmtpAddress))
+            if (!($emailAddress | Select-String -Pattern "$DomainFQDN") -and !($emailAddress.Replace("SMTP:","") -eq $mailbox.PrimarySmtpAddress))
             {
                 $emailAddress = $emailAddress.Replace("smtp:","")
                 $emailAddress = $emailAddress.Replace("SMTP:","")
@@ -49,15 +54,6 @@ foreach ($mailbox in $mailboxes)
     }
 
     $exportUserArray += $userObject
-
-
-    #Write-Host "AD User= $($adUser.SurName) $($adUser.GivenName)"
-    #Write-Host "Mailbox = $($mailbox.RecipientTypeDetails)" -ForegroundColor Green
-    #if ($mailbox.RecipientTypeDetails -ne "UserMailbox")
-    #{
-    #    Write-Host "Alias = $($mailbox.Alias) - number of characters =" $($mailbox.Alias).length -ForegroundColor Yellow
-    #}
-    #Write-Host "-------------------------------------"
 }
 
 $exportUserArray | Export-Csv -Path C:\Sources\userExport.csv -NoTypeInformation
