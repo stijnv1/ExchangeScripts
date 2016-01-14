@@ -9,7 +9,8 @@ param
     [string]$AADServerName,
     [string]$emailAddressPolicyName,
 	[string]$ExchangeServerName,
-	[string]$GroupsOUDistinguishedName
+	[string]$GroupsOUDistinguishedName,
+	[string]$O365LicenseName
 )
 
 Function WriteToLog
@@ -47,9 +48,6 @@ Function WriteToLog
 
 Try
 {
-    #O365 license name
-    $O365License = "agii:STANDARDWOFFPACK"
-
     #create connection to O365
     $UserCredential = Get-Credential
 
@@ -91,7 +89,7 @@ Try
 
                     #assign O365 license
                     Set-MsolUser -UserPrincipalName $aduser.UserPrincipalName -UsageLocation BE
-                    Set-MsolUserLicense -UserPrincipalName $aduser.UserPrincipalName -AddLicenses $O365License 
+                    Set-MsolUserLicense -UserPrincipalName $aduser.UserPrincipalName -AddLicenses $O365LicenseName 
 
                     #run the e-mail address policy update
                     Get-EmailAddressPolicy | ? Name -Like "*$emailAddressPolicyName*" | Update-EmailAddressPolicy
