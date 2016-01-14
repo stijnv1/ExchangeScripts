@@ -109,7 +109,7 @@ Try
         Invoke-Command -ComputerName $AADServerName -ScriptBlock {& cmd.exe /c "D:\Program Files\Microsoft Azure AD Sync\Bin\DirectorySyncClientCmd.exe"}
 
         #close onpremise exchange powershell session
-        WriteToLog -LogPath $LogPath -TextValue "Closing on-premise Exchange 2013 remote powershell session..." -WriteError $false
+        WriteToLog -LogPath $LogPath -TextValue "Closing on-premise Exchange remote powershell session..." -WriteError $false
         Remove-PSSession $OnPremExchangeSession
 
         #start O365 remote powershell session
