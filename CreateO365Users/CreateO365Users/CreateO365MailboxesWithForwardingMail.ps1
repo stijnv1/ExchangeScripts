@@ -7,7 +7,9 @@ param
     [string]$LogPath,
     [string]$RemoteRoutingMailDomain,
     [string]$AADServerName,
-    [string]$emailAddressPolicyName
+    [string]$emailAddressPolicyName,
+	[string]$ExchangeServerName,
+	[string]$GroupsOUDistinguishedName
 )
 
 Function WriteToLog
@@ -52,7 +54,7 @@ Try
     $UserCredential = Get-Credential
 
     #create remote powershell session to onpremise Exchange 2013
-    $OnPremExchangeSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://vp-exc01.adam.local/PowerShell/ -Authentication Kerberos
+    $OnPremExchangeSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://$ExchangeServerName/PowerShell/ -Authentication Kerberos
 
     #start remote powershell session to onpremise Exchange 2013 server
     Import-PSSession $OnPremExchangeSession
@@ -60,7 +62,7 @@ Try
     #connect to Azure AD
     Connect-MsolService -Credential $UserCredential
 
-    #$ADGroups = Get-ADGroup -SearchBase "OU=O365_MigrationGroups,OU=Groups,OU=ManagementOU_0,OU=ManagementOUs,DC=adam,DC=local"
+    #$ADGroups = Get-ADGroup -SearchBase $GroupsOUDistinguishedName
     $ADGroups = Get-ADGroup "GG-S-MailForward-odice"
 
     foreach ($adgroup in $ADGroups)
@@ -77,13 +79,14 @@ Try
                 #check whether remote mailbox already exists for this user. If exists, no further processing is needed for this user
                 if (Get-RemoteMailbox $mailAlias -ErrorAction silentlycontinue)
                 {
-                    Write-Host "User $mailAlias already has an Office 365 mailbox, user is skipped ..."
+                    Write-Host "[SKIP]: User $mailAlias already has an Office 365 mailbox, user is skipped ..." -ForegroundColor Yellow
                     WriteToLog -LogPath $LogPath -TextValue "User $mailAlias already has a mailbox in Office 365, user is skipped" -WriteError $false
                 }
                 else
                 {
                     #enable remote mailbox
-                    WriteToLog -LogPath $LogPath -TextValue "Enable Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias"
+					Write-Host "[CREATE]: Create Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias ..." -ForegroundColor Yellow 
+                    WriteToLog -LogPath $LogPath -TextValue "Create Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias"
                     Enable-RemoteMailbox $aduser.UserPrincipalName -RemoteRoutingAddress "$mailAlias@$RemoteRoutingMailDomain"
 
                     #assign O365 license
@@ -144,12 +147,12 @@ Try
                 #check whether forwarding address is already configured, if configured, skip user
                 if ((Get-Mailbox $mailAlias).ForwardingSmtpAddress)
                 {
-                    Write-Host "User $mailAlias already has a forwarding SMTP address configured, skip user ..." -ForegroundColor Green
+                    Write-Host "[SKIP]: User $mailAlias already has a forwarding SMTP address configured, skip user ..." -ForegroundColor Green
                     WriteToLog -LogPath $LogPath -TextValue "User $mailAlias already has a forwarding SMTP address configured, skip user"
                 }
                 else
                 {
-                    Write-Host "User $($aduser.Name) has no forwarding SMTP address configured yet, start creating forwarding SMT Address ..." -ForegroundColor Green
+                    Write-Host "[CREATE]: User $($aduser.Name) has no forwarding SMTP address configured yet, start creating forwarding SMT Address ..." -ForegroundColor Green
                     WriteToLog -LogPath $LogPath -TextValue "Set forwarding mail address for user $($aduser.Name) to $mailAlias@$prefixAddress" -WriteError $false
                     Set-Mailbox $aduser.UserPrincipalName -ForwardingSmtpAddress "$mailAlias@$prefixAddress"
                 }
