@@ -85,7 +85,7 @@ Try
                     #enable remote mailbox
 					Write-Host "[CREATE]: Create Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias ..." -ForegroundColor Yellow 
                     WriteToLog -LogPath $LogPath -TextValue "Create Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias"
-                    Enable-RemoteMailbox $aduser.UserPrincipalName -RemoteRoutingAddress "$mailAlias@$RemoteRoutingMailDomain"
+                    Enable-RemoteMailbox $aduser.UserPrincipalName -RemoteRoutingAddress "$mailAlias@$RemoteRoutingMailDomain" | Out-Null
 
                     #assign O365 license
                     Set-MsolUser -UserPrincipalName $aduser.UserPrincipalName -UsageLocation BE
@@ -94,6 +94,17 @@ Try
                     #run the e-mail address policy update
                     Get-EmailAddressPolicy | ? Name -Like "*$emailAddressPolicyName*" | Update-EmailAddressPolicy
                 }
+
+                #activate code below if something went wrong during license provisioning
+                #if ((Get-MsolUser -UserPrincipalName $aduser.UserPrincipalName).isLicensed)
+                #{
+                #    Write-Host "User already licensed"
+                #}
+                #else
+                #{
+                #    Write-Host "Set license"
+                #    Set-MsolUserLicense -UserPrincipalName $aduser.UserPrincipalName -AddLicenses $O365LicenseName
+                #}
             }
             Catch
             {
