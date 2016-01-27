@@ -48,6 +48,8 @@ Function WriteToLog
 
 Try
 {
+    #import MSOL Powershell Module (= Azure AD Powershell module)
+    import-module MSOnline
     #create connection to O365
     $UserCredential = Get-Credential
 
@@ -61,10 +63,14 @@ Try
     Connect-MsolService -Credential $UserCredential
 
     #$ADGroups = Get-ADGroup -SearchBase $GroupsOUDistinguishedName
-    $ADGroups = Get-ADGroup "GG-S-MailForward-odice"
+    $ADGroups = Get-ADGroup "GG-S-MailForward-vlaamsbrabant"
 
     foreach ($adgroup in $ADGroups)
     {
+        #add users of the AD group to the correct AGII e-mail address policy AD group
+        WriteToLog -LogPath $LogPath -TextValue "Add members of group $($adgroup.Name) to AD group GG-S-AddressPolicy-AGII_Alias to ensure the correct e-mail address policy is applied" -WriteError $false
+        Get-ADGroupMember $adgroup | % {Add-ADGroupMember -Identity "GG-S-AddressPolicy-AGII_Alias" -Members $_}
+
         WriteToLog -LogPath $LogPath -TextValue "Start Processing AD Group $($adgroup.Name)" -WriteError $false
         $adusers = Get-ADGroupMember $adgroup | Get-ADUser -Properties streetAddress
         
@@ -84,10 +90,11 @@ Try
                 {
                     #enable remote mailbox
 					Write-Host "[CREATE]: Create Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias ..." -ForegroundColor Yellow 
-                    WriteToLog -LogPath $LogPath -TextValue "Create Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias"
+                    WriteToLog -LogPath $LogPath -TextValue "Create Office 365 mailbox for user $($aduser.Name) with mailalias $mailAlias" -WriteError $false
                     Enable-RemoteMailbox $aduser.UserPrincipalName -RemoteRoutingAddress "$mailAlias@$RemoteRoutingMailDomain" | Out-Null
 
                     #assign O365 license
+                    WriteToLog -LogPath $LogPath -TextValue "Set Office 365 license for user $($aduser.Name) with mailalias $mailAlias" -WriteError $false
                     Set-MsolUser -UserPrincipalName $aduser.UserPrincipalName -UsageLocation BE
                     Set-MsolUserLicense -UserPrincipalName $aduser.UserPrincipalName -AddLicenses $O365LicenseName 
 
@@ -157,7 +164,7 @@ Try
                 if ((Get-Mailbox $mailAlias).ForwardingSmtpAddress)
                 {
                     Write-Host "[SKIP]: User $mailAlias already has a forwarding SMTP address configured, skip user ..." -ForegroundColor Green
-                    WriteToLog -LogPath $LogPath -TextValue "User $mailAlias already has a forwarding SMTP address configured, skip user"
+                    WriteToLog -LogPath $LogPath -TextValue "User $mailAlias already has a forwarding SMTP address configured, skip user" -WriteError $false
                 }
                 else
                 {
