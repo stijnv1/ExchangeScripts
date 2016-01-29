@@ -28,6 +28,7 @@
   </PropertyGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="AddMailAliasses.ps1" />
     <Compile Include="CreateO365MailboxesWithForwardingMail.ps1" />
     <Compile Include="RemoveMailForwardO365Mailbox.ps1" />
   </ItemGroup>
