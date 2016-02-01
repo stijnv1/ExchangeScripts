@@ -161,12 +161,12 @@ Try
         }
         while ((!$emptyAliasDefined) -and ($arrayCounter -lt $numberOfAddresses))
 
-        Write-Host "Starting function to add e-mail address(es) to mailbox of user $($userObject.UPN) ...`n`n" -ForegroundColor Gray
+        Write-Host "Starting function to add e-mail address(es) to mailbox of user $($userObject.UPN) ..." -ForegroundColor Gray
         WriteToLog -LogPath $LogDirPath -TextValue "Starting function to add e-mail address(es) to mailbox of user $($userObject.UPN) ...`n" -WriteError $false
 
         if (Get-RemoteMailbox $userObject.UPN -ErrorAction SilentlyContinue)
         {
-            Write-Host "User mailbox is an Office 365 mailbox ..." -ForegroundColor Green
+            Write-Host "User mailbox is an Office 365 mailbox ...`n`n" -ForegroundColor Green
             AddEmailAddressRemoteMailbox -userUPN $userObject.UPN -Aliasses $addressArray -ExchangeServerName $ExchangeServerName -LogDirPath $LogDirPath
         }
         elseif (Get-Mailbox $userObject.UPN -ErrorAction SilentlyContinue)
