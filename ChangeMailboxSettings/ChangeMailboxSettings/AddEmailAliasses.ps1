@@ -10,7 +10,10 @@ param
     [string]$LogDirPath,
 
     [Parameter(Mandatory=$true)]
-    [string]$ExchangeServerName
+    [string]$ExchangeServerName,
+
+	[Parameter(Mandatory=$true)]
+	[stirng]$AADConnectServerName
 )
 
 Function WriteToLog
@@ -176,7 +179,7 @@ Try
 
     #start Azure AD sync
     Write-Host "Starting Azure AD Sync ..." -ForegroundColor DarkYellow
-    Invoke-Command -ComputerName VP-AAD01.adam.local -ScriptBlock {& cmd.exe /c "D:\Program Files\Microsoft Azure AD Sync\Bin\DirectorySyncClientCmd.exe"}
+    Invoke-Command -ComputerName $AADConnectServerName -ScriptBlock {& cmd.exe /c "D:\Program Files\Microsoft Azure AD Sync\Bin\DirectorySyncClientCmd.exe"}
 }
 
 Catch
