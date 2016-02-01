@@ -171,7 +171,7 @@ Try
         }
         elseif (Get-Mailbox $userObject.UPN -ErrorAction SilentlyContinue)
         {
-            Write-Host "User mailbox is an onpremise mailbox ..." -ForegroundColor Green
+            Write-Host "User mailbox is an onpremise mailbox ...`n`n" -ForegroundColor Green
             AddEmailAddressOnPremMailbox -userUPN $userObject.UPN -Aliasses $addressArray -ExchangeServerName $ExchangeServerName -LogDirPath $LogDirPath
         }
     }
